@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"net/http/httputil"
 	"sync"
 	"time"
 
@@ -16,11 +17,16 @@ type expiringHandler struct {
 	*http.HandlerFunc           // the actual handler
 	lastAccessed      time.Time // the last time this handler was accessed
 	id                string
+	store             storage
 }
 
-func newexpiringHandler(path string) expiringHandler {
-	eh := expiringHandler{id: uuid.New().String()}
+func newexpiringHandler(path string, store storage) expiringHandler {
+	eh := expiringHandler{id: uuid.New().String(), store: store}
 	h := http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+
+		// Capture the request body
+		rbuf, _ := httputil.DumpRequest(request, true)
+		eh.store.append(path, rbuf)
 		request.Header.Add("X-Echo-Handler", eh.id)
 		request.Write(writer)
 		eh.lastAccessed = time.Now()

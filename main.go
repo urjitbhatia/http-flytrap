@@ -11,6 +11,7 @@ import (
 const DefaultPort = "9000"
 
 var pathmap = sync.Map{}
+var dataStore = newMemStore()
 
 func getServerPort() string {
 	port := os.Getenv("SERVER_PORT")
@@ -24,12 +25,19 @@ func getServerPort() string {
 func initHandler(writer http.ResponseWriter, request *http.Request) {
 	path := request.URL.Path
 	if path == "/" {
+		dataStore.foreach(func(key string, values []interface{}) bool {
+			log.Printf("Path: %s", key)
+			for _, v := range values {
+				log.Printf("\t Request: %s", v)
+			}
+			return true
+		})
 		return
 	}
 	h, ok := pathmap.Load(path)
 	// new path detected
 	if !ok {
-		h = newexpiringHandler(path)
+		h = newexpiringHandler(path, dataStore)
 		pathmap.Store(path, h)
 	}
 	handler := h.(expiringHandler)

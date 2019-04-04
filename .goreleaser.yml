@@ -27,8 +27,8 @@ dockers:
     goarch: amd64
     image_templates:
       - 'urjitbhatia/http-flytrap:latest'
-      - 'urjitbhatia/http-flytrap:v{{ .Tag }}'
-      - 'urjitbhatia/http-flytrap:v{{ .Major }}'
+      - 'urjitbhatia/http-flytrap:{{ .Tag }}'
+      - 'urjitbhatia/http-flytrap:{{ .Major }}'
     skip_push: false
     dockerfile: docker/goreleaser/Dockerfile
     build_flag_templates:

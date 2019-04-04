@@ -25,10 +25,10 @@ type expiringHandler struct {
 func newexpiringHandler(path string, store storage) expiringHandler {
 	eh := expiringHandler{path: path, store: store}
 	h := http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		// Capture the request body
+		// Capture the request
+		request.Header.Add("X-Recv-Timestamp", time.Now().Format(time.StampMilli))
 		rbuf, _ := httputil.DumpRequest(request, true)
 		eh.store.append(eh.path, rbuf)
-		writer.Header().Set("X-Echo-Handler", eh.path)
 		eh.lastAccessed = time.Now()
 	})
 	eh.HandlerFunc = &h

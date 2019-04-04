@@ -18,6 +18,18 @@ const DefaultPort = "9000"
 var pathmap = sync.Map{}
 var dataStore = newMemStore()
 
+type templateData struct {
+	HandlerTTL  string
+	HandlerData []handlerData
+}
+
+var tdata = templateData{HandlerTTL: getHandlerTTL().String()}
+
+type handlerData struct {
+	Path string
+	Reqs [][]string
+}
+
 func getServerPort() string {
 	port := os.Getenv("SERVER_PORT")
 	if port != "" {
@@ -88,22 +100,23 @@ func serveTemplate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type handlerData struct {
-		Path string
-		Data []string
-	}
 	data := []handlerData{}
 	dataStore.foreach(func(key string, values []interface{}) bool {
 		d := handlerData{}
 		d.Path = key
 		for _, v := range values {
-			d.Data = append(d.Data, fmt.Sprintf("Request: %s", v))
+			// restore the body for future reads
+			displayVal := fmt.Sprintf("Request: %s", v)
+			// for better formatting
+			lines := strings.Split(displayVal, "\n")
+			d.Reqs = append(d.Reqs, lines)
 		}
 		data = append(data, d)
 		return true
 	})
+	tdata.HandlerData = data
 
-	if err := tmpl.ExecuteTemplate(w, "layout", data); err != nil {
+	if err := tmpl.ExecuteTemplate(w, "layout", tdata); err != nil {
 		log.Println(err.Error())
 		http.Error(w, http.StatusText(500), 500)
 	}

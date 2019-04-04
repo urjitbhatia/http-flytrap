@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -57,14 +60,7 @@ func createMainHandler(fsHandler http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 		if path == "/" {
-			dataStore.foreach(func(key string, values []interface{}) bool {
-				log.Printf("Handler: %s", key)
-				for _, v := range values {
-					log.Printf("\t Request: %s", v)
-				}
-				return true
-			})
-			fsHandler.ServeHTTP(w, r)
+			serveTemplate(w, r)
 			return
 		}
 
@@ -76,6 +72,40 @@ func createMainHandler(fsHandler http.Handler) http.HandlerFunc {
 		}
 
 		dynamicHandler(w, r)
+	}
+}
+
+func serveTemplate(w http.ResponseWriter, r *http.Request) {
+	lp := filepath.Join("templates", "layout.html")
+	fp := filepath.Join("templates", "components.html")
+
+	tmpl, err := template.ParseFiles(lp, fp)
+	if err != nil {
+		// Log the detailed error
+		log.Println(err.Error())
+		// Return a generic "Internal Server Error" message
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+
+	type handlerData struct {
+		Path string
+		Data []string
+	}
+	data := []handlerData{}
+	dataStore.foreach(func(key string, values []interface{}) bool {
+		d := handlerData{}
+		d.Path = key
+		for _, v := range values {
+			d.Data = append(d.Data, fmt.Sprintf("Request: %s", v))
+		}
+		data = append(data, d)
+		return true
+	})
+
+	if err := tmpl.ExecuteTemplate(w, "layout", data); err != nil {
+		log.Println(err.Error())
+		http.Error(w, http.StatusText(500), 500)
 	}
 }
 

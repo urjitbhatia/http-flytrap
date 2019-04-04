@@ -1,0 +1,19 @@
+{{define "layout"}}
+  <!doctype html>
+  <html>
+    <head>
+      <meta charset="utf-8">
+      <title>{{template "title"}}</title>
+      <link rel="stylesheet" href="/static/stylesheets/main.css">
+    </head>
+    <body>
+      {{template "body"}}
+      {{ range . }}
+        <h1>Path: {{ .Path }}</h1>
+        {{ range .Data}}
+          <div>{{ . }}</div>
+        {{ end }}
+      {{end}}
+    </body>
+  </html>
+{{end}}

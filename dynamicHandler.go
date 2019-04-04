@@ -6,8 +6,6 @@ import (
 	"net/http/httputil"
 	"sync"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // DefaultHandlerTTL is the default TTL after which a dynamic path handler will the uninstalled if it is inactive
@@ -20,17 +18,17 @@ const DefaultPruneTicker = time.Second * 30
 type expiringHandler struct {
 	*http.HandlerFunc           // the actual handler
 	lastAccessed      time.Time // the last time this handler was accessed
-	id                string
+	path              string
 	store             storage
 }
 
 func newexpiringHandler(path string, store storage) expiringHandler {
-	eh := expiringHandler{id: uuid.New().String(), store: store}
+	eh := expiringHandler{path: path, store: store}
 	h := http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		// Capture the request body
 		rbuf, _ := httputil.DumpRequest(request, true)
-		eh.store.append(eh.id, rbuf)
-		writer.Header().Set("X-Echo-Handler", eh.id)
+		eh.store.append(eh.path, rbuf)
+		writer.Header().Set("X-Echo-Handler", eh.path)
 		eh.lastAccessed = time.Now()
 	})
 	eh.HandlerFunc = &h
@@ -46,9 +44,9 @@ func pruneHandlers(ttl time.Duration, handlers *sync.Map) {
 			age := time.Now().Sub(h.lastAccessed)
 			if age >= ttl {
 				// delete
-				log.Printf("Pruning old handler for path: %s handlerID: %s Age: %v", key, h.id, age)
+				log.Printf("Pruning old handler for path: %s Age: %v", h.path, age)
 				handlers.Delete(key)
-				h.store.delete(h.id)
+				h.store.delete(h.path)
 			}
 			return true
 		})

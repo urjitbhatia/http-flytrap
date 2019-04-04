@@ -53,24 +53,26 @@ func dynamicHandler(writer http.ResponseWriter, request *http.Request) {
 }
 
 func createMainHandler(fsHandler http.Handler) http.HandlerFunc {
-	ignorePaths := []string{"favicon.ico", "css", "html"}
+	defaultPaths := []string{"favicon.ico", "css", "html"}
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
-		for _, ignored := range ignorePaths {
-			if strings.Contains(path, ignored) {
-				return
-			}
-		}
 		if path == "/" {
 			dataStore.foreach(func(key string, values []interface{}) bool {
-				log.Printf("Path: %s", key)
+				log.Printf("Handler: %s", key)
 				for _, v := range values {
 					log.Printf("\t Request: %s", v)
 				}
-				fsHandler.ServeHTTP(w, r)
 				return true
 			})
+			fsHandler.ServeHTTP(w, r)
 			return
+		}
+
+		for _, defaultPath := range defaultPaths {
+			if strings.Contains(path, defaultPath) {
+				fsHandler.ServeHTTP(w, r)
+				return
+			}
 		}
 
 		dynamicHandler(w, r)
@@ -81,6 +83,7 @@ func main() {
 	log.Println("Starting server on port " + getServerPort())
 	go pruneHandlers(DefaultHandlerTTL, &pathmap)
 	fs := http.FileServer(http.Dir("static"))
-	http.HandleFunc("/", createMainHandler(fs))
+	ffs := http.StripPrefix("/static/", fs)
+	http.HandleFunc("/", createMainHandler(ffs))
 	http.ListenAndServe(":"+getServerPort(), nil)
 }

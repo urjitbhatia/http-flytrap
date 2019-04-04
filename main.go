@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 )
 
 // DefaultPort is the default port to use if once is not specified by the SERVER_PORT environment variable
@@ -19,6 +20,22 @@ func getServerPort() string {
 		return port
 	}
 	return DefaultPort
+}
+
+func getHandlerTTL() time.Duration {
+	ttl := os.Getenv("HANDLER_TTL")
+	if ttl != "" {
+		ttlDur, err := time.ParseDuration(ttl)
+		if err != nil {
+			log.Printf("Invalid handler TTL duration: %s "+
+				"using default: %v. (Use go style duration string)",
+				ttl,
+				DefaultHandlerTTL)
+			return DefaultHandlerTTL
+		}
+		return ttlDur
+	}
+	return DefaultHandlerTTL
 }
 
 // initHandler dynamically creates handlers for paths that it sees for the first time
@@ -46,6 +63,7 @@ func initHandler(writer http.ResponseWriter, request *http.Request) {
 
 func main() {
 	log.Println("Starting server on port " + getServerPort())
+	go pruneHandlers(DefaultHandlerTTL, &pathmap)
 	http.HandleFunc("/", initHandler)
 	http.ListenAndServe(":"+getServerPort(), nil)
 }

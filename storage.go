@@ -1,10 +1,13 @@
 package main
 
+import "log"
+
 type storage interface {
 	append(key string, value interface{})
 	exists(key string) bool
 	load(key string) []interface{}
 	foreach(func(key string, value []interface{}) bool)
+	delete(key string) bool
 }
 
 type memStore struct {
@@ -32,6 +35,15 @@ func (ms *memStore) exists(key string) bool {
 func (ms *memStore) load(key string) []interface{} {
 	vals, _ := ms.data[key]
 	return vals
+}
+
+func (ms *memStore) delete(key string) bool {
+	_, ok := ms.data[key]
+	if ok {
+		log.Printf("Store deleting key: %s", key)
+		delete(ms.data, key)
+	}
+	return ok
 }
 
 func (ms *memStore) foreach(f func(key string, values []interface{}) bool) {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"sync"
@@ -11,7 +12,10 @@ import (
 
 // DefaultHandlerTTL is the default TTL after which a dynamic path handler will the uninstalled if it is inactive
 // for at least that duration
-const DefaultHandlerTTL = time.Hour * 5
+const DefaultHandlerTTL = time.Second * 5
+
+// DefaultPruneTicker sets how often we should check for stale handlers
+const DefaultPruneTicker = time.Second * 30
 
 type expiringHandler struct {
 	*http.HandlerFunc           // the actual handler
@@ -23,12 +27,10 @@ type expiringHandler struct {
 func newexpiringHandler(path string, store storage) expiringHandler {
 	eh := expiringHandler{id: uuid.New().String(), store: store}
 	h := http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-
 		// Capture the request body
 		rbuf, _ := httputil.DumpRequest(request, true)
-		eh.store.append(path, rbuf)
-		request.Header.Add("X-Echo-Handler", eh.id)
-		request.Write(writer)
+		eh.store.append(eh.id, rbuf)
+		writer.Header().Set("X-Echo-Handler", eh.id)
 		eh.lastAccessed = time.Now()
 	})
 	eh.HandlerFunc = &h
@@ -38,14 +40,15 @@ func newexpiringHandler(path string, store storage) expiringHandler {
 }
 
 func pruneHandlers(ttl time.Duration, handlers *sync.Map) {
-	for range time.NewTicker(time.Second * 30).C {
+	for range time.NewTicker(getHandlerTTL()).C {
 		handlers.Range(func(key, value interface{}) bool {
 			h := value.(expiringHandler)
-			age := h.lastAccessed.Sub(time.Now())
+			age := time.Now().Sub(h.lastAccessed)
 			if age >= ttl {
 				// delete
-				println("Pruning old handler for path: %s. Age: %s", key, age)
+				log.Printf("Pruning old handler for path: %s handlerID: %s Age: %v", key, h.id, age)
 				handlers.Delete(key)
+				h.store.delete(h.id)
 			}
 			return true
 		})

@@ -1,0 +1,36 @@
+project_name: flytrap
+before:
+  hooks:
+    - dep ensure -vendor-only
+builds:
+  - env:
+      - CGO_ENABLED=0
+archive:
+  replacements:
+    '386': i386
+    darwin: Darwin
+    linux: Linux
+    windows: Windows
+    amd64: x86_64
+checksum:
+  name_template: checksums.txt
+snapshot:
+  name_template: '{{ .Tag }}-next'
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+dockers:
+  - goos: linux
+    goarch: amd64
+    image_templates:
+      - 'urjitbhatia/http-flytrap:latest'
+      - 'urjitbhatia/http-flytrap:v{{ .Tag }}'
+      - 'urjitbhatia/http-flytrap:v{{ .Major }}'
+    skip_push: false
+    dockerfile: docker/goreleaser/Dockerfile
+    build_flag_templates:
+      - '--label=version={{.Version}}'
+      - '--build-arg=VERSION={{.Version}}'

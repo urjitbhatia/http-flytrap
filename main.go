@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 )
@@ -38,19 +39,9 @@ func getHandlerTTL() time.Duration {
 	return DefaultHandlerTTL
 }
 
-// initHandler dynamically creates handlers for paths that it sees for the first time
-func initHandler(writer http.ResponseWriter, request *http.Request) {
+// dynamicHandler dynamically creates handlers for paths that it sees for the first time
+func dynamicHandler(writer http.ResponseWriter, request *http.Request) {
 	path := request.URL.Path
-	if path == "/" {
-		dataStore.foreach(func(key string, values []interface{}) bool {
-			log.Printf("Path: %s", key)
-			for _, v := range values {
-				log.Printf("\t Request: %s", v)
-			}
-			return true
-		})
-		return
-	}
 	h, ok := pathmap.Load(path)
 	// new path detected
 	if !ok {
@@ -61,9 +52,35 @@ func initHandler(writer http.ResponseWriter, request *http.Request) {
 	handler.ServeHTTP(writer, request)
 }
 
+func createMainHandler(fsHandler http.Handler) http.HandlerFunc {
+	ignorePaths := []string{"favicon.ico", "css", "html"}
+	return func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		for _, ignored := range ignorePaths {
+			if strings.Contains(path, ignored) {
+				return
+			}
+		}
+		if path == "/" {
+			dataStore.foreach(func(key string, values []interface{}) bool {
+				log.Printf("Path: %s", key)
+				for _, v := range values {
+					log.Printf("\t Request: %s", v)
+				}
+				fsHandler.ServeHTTP(w, r)
+				return true
+			})
+			return
+		}
+
+		dynamicHandler(w, r)
+	}
+}
+
 func main() {
 	log.Println("Starting server on port " + getServerPort())
 	go pruneHandlers(DefaultHandlerTTL, &pathmap)
-	http.HandleFunc("/", initHandler)
+	fs := http.FileServer(http.Dir("static"))
+	http.HandleFunc("/", createMainHandler(fs))
 	http.ListenAndServe(":"+getServerPort(), nil)
 }

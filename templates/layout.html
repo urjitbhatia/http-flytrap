@@ -1,41 +1,58 @@
 {{define "layout"}}
   <!doctype html>
+
   <html>
     <head>
       <meta charset="utf-8">
       <title>Http-Flytrap</title>
       <link rel="stylesheet" href="/static/stylesheets/main.css">
+      <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
     </head>
     <body>
       <div class="container">
-        <p>
-          <center><h3>Flytrap is capturing requests</h3></center>
-          <h5>Handler data will expire if a route is inactive for:
+        <div class="row">
+          <div class="two column">
+            <div class="container">
+              <div class="row">
+                <div class="three columns">
+                  <img src="/static/logos/logo.png" width="80%">
+                </div>
+                <div class="nine columns">
+                  <h3>Flytrap is capturing requests on Port: <code>{{ .CapturePort }}</code>
+                  </h3>
+                  <h5>Handler data will expire if a route is inactive for:
               <code>{{ .HandlerTTL }}</code>
-          </h5>
-        </p>
-        {{ range .HandlerData }}
-          <table class="data-wrapper" width="100%" cellpadding="0" cellspacing="0">
-            <thead>
-              <tr>
-                <th>Path: {{ .Path }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {{ range .Reqs }}
-                <tr>
-                  <td colspan="2">
-                    <p>
-                      {{ range . }}
-                        <div>{{.}}</div>
-                      {{end}}
-                    </p>
-                  </td>
-                </tr>
-              {{end}}
-            </tbody>
-          </table>
-        {{end}}
+                  </h5>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ten columns">
+            {{ range .HandlerData }}
+              <table class="data-wrapper" width="100%" cellpadding="0" cellspacing="0">
+                <thead>
+                  <tr>
+                    <th>Path: {{ .Path }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{ range .Reqs }}
+                    <tr>
+                      <td colspan="2">
+                        <p>
+                          {{ range . }}
+                            <div>{{.}}</div>
+                          {{end}}
+                        </p>
+                      </td>
+                    </tr>
+                  {{end}}
+                </tbody>
+              </table>
+            {{end}}
+          </div>
+        </div>
       </div>
     </body>
   </html>

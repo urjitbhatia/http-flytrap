@@ -16,6 +16,7 @@ var pathmap = sync.Map{}
 var dataStore = newMemStore()
 
 type templateData struct {
+	CapturePort string
 	HandlerTTL  string
 	HandlerData []handlerData
 }
@@ -57,7 +58,7 @@ func dynamicHandler(writer http.ResponseWriter, request *http.Request) {
 }
 
 func createQueryHandler(fsHandler http.Handler) http.HandlerFunc {
-	defaultPaths := []string{"css"}
+	defaultPaths := []string{"css", "logos"}
 	favico := func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "static/favicon.ico")
 	}
@@ -117,6 +118,8 @@ func serveTemplate(w http.ResponseWriter, r *http.Request) {
 
 // Trap starts the flytrap capture
 func Trap(capturePort, queryPort string, ttl time.Duration) {
+	// set capture port for template
+	tdata.CapturePort = capturePort
 	go pruneHandlers(ttl, &pathmap)
 
 	// query server

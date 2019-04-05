@@ -12,13 +12,6 @@ import (
 	"time"
 )
 
-// DefaultCapturePort is the default port to use if once is not specified by the SERVER_PORT environment variable
-// this is the port that captures any requests that it sees
-const DefaultCapturePort = 9000
-
-// DefaultQueryPort is the default port you can use to query the requests that flytrap caught
-const DefaultQueryPort = DefaultCapturePort + 1
-
 var pathmap = sync.Map{}
 var dataStore = newMemStore()
 

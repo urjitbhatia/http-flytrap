@@ -7,26 +7,34 @@
       <link rel="stylesheet" href="/static/stylesheets/main.css">
     </head>
     <body>
-      <p>
-        {{template "body"}}
-        <div>Handler data will expire if a route is inactive for: {{ .HandlerTTL }}.</div>
-      </p>
-      {{ range .HandlerData }}
-        <h1>Path: {{ .Path }}</h1>
-        <table class="data-wrapper" width="100%" cellpadding="0" cellspacing="0">
-          {{ range .Reqs }}
-            <tr>
-              <td colspan="2">
-                <p>
-                  {{ range . }}
-                    <div>{{.}}</div>
-                  {{end}}
-                </p>
-              </td>
-            </tr>
-          {{end}}
-        </table>
-      {{end}}
+      <div class="container">
+        <p>
+          {{template "body"}}
+          <div>Handler data will expire if a route is inactive for: {{ .HandlerTTL }}.</div>
+        </p>
+        {{ range .HandlerData }}
+          <table class="data-wrapper" width="100%" cellpadding="0" cellspacing="0">
+            <thead>
+              <tr>
+                <th>Path: {{ .Path }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{ range .Reqs }}
+                <tr>
+                  <td colspan="2">
+                    <p>
+                      {{ range . }}
+                        <div>{{.}}</div>
+                      {{end}}
+                    </p>
+                  </td>
+                </tr>
+              {{end}}
+            </tbody>
+          </table>
+        {{end}}
+      </div>
     </body>
   </html>
 {{end}}

@@ -1,5 +1,7 @@
 FROM scratch as binBase
 COPY flytrap /
+COPY static /static
+COPY templates /templates
 
 FROM alpine:edge
 LABEL maintainer Urjit Singh Bhatia<(urjitsinghbhatia@gmail.com> (github: @urjitbhatia)
@@ -21,4 +23,6 @@ RUN buildDeps=' \
 
 EXPOSE 9000
 COPY --from=binBase /flytrap /usr/local/bin/flytrap
+COPY --from=binBase /templates /usr/local/bin/templates
+COPY --from=binBase /static /usr/local/bin/static
 ENTRYPOINT [ "flytrap" ]

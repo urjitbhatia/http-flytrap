@@ -7,11 +7,13 @@ builds:
       - CGO_ENABLED=0
 archive:
   replacements:
-    '386': i386
     darwin: Darwin
     linux: Linux
     windows: Windows
     amd64: x86_64
+  files:
+    - templates/**/*
+    - static/**/*
 checksum:
   name_template: checksums.txt
 snapshot:
@@ -23,7 +25,8 @@ changelog:
       - '^docs:'
       - '^test:'
 dockers:
-  - goos: linux
+  -
+    goos: linux
     goarch: amd64
     image_templates:
       - 'urjitbhatia/http-flytrap:latest'
@@ -34,3 +37,6 @@ dockers:
     build_flag_templates:
       - '--label=version={{.Version}}'
       - '--build-arg=VERSION={{.Version}}'
+    extra_files:
+      - templates
+      - static

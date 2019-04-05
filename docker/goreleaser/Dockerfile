@@ -25,4 +25,7 @@ EXPOSE 9000
 COPY --from=binBase /flytrap /usr/local/bin/flytrap
 COPY --from=binBase /templates /usr/local/bin/templates
 COPY --from=binBase /static /usr/local/bin/static
+
+# Tweak the handler TTL - how long data is retained for. (default 30mins)
+# ENV HANDLER_TTL="30m"
 ENTRYPOINT [ "flytrap" ]

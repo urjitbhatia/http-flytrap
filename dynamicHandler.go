@@ -10,10 +10,10 @@ import (
 
 // DefaultHandlerTTL is the default TTL after which a dynamic path handler will the uninstalled if it is inactive
 // for at least that duration
-const DefaultHandlerTTL = time.Second * 5
+const DefaultHandlerTTL = time.Minute * 30
 
 // DefaultPruneTicker sets how often we should check for stale handlers
-const DefaultPruneTicker = time.Second * 30
+const DefaultPruneTicker = time.Minute * 1
 
 type expiringHandler struct {
 	*http.HandlerFunc           // the actual handler

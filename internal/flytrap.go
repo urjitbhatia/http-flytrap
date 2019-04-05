@@ -90,9 +90,8 @@ func createQueryHandler(fsHandler http.Handler) http.HandlerFunc {
 
 func serveTemplate(w http.ResponseWriter, r *http.Request) {
 	lp := filepath.Join("templates", "layout.html")
-	fp := filepath.Join("templates", "components.html")
 
-	tmpl, err := template.ParseFiles(lp, fp)
+	tmpl, err := template.ParseFiles(lp)
 	if err != nil {
 		// Log the detailed error
 		log.Println(err.Error())

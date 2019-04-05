@@ -3,14 +3,16 @@
   <html>
     <head>
       <meta charset="utf-8">
-      <title>{{template "title"}}</title>
+      <title>Http-Flytrap</title>
       <link rel="stylesheet" href="/static/stylesheets/main.css">
     </head>
     <body>
       <div class="container">
         <p>
-          {{template "body"}}
-          <div>Handler data will expire if a route is inactive for: {{ .HandlerTTL }}.</div>
+          <center><h3>Flytrap is capturing requests</h3></center>
+          <h5>Handler data will expire if a route is inactive for:
+              <code>{{ .HandlerTTL }}</code>
+          </h5>
         </p>
         {{ range .HandlerData }}
           <table class="data-wrapper" width="100%" cellpadding="0" cellspacing="0">

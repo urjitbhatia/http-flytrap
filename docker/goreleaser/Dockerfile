@@ -21,7 +21,11 @@ RUN buildDeps=' \
     && apk del $buildDeps \
     && echo "Build complete."
 
+# Capture port
 EXPOSE 9000
+# Query server port
+EXPOSE 9001
+
 COPY --from=binBase /flytrap /usr/local/bin/flytrap
 COPY --from=binBase /templates /usr/local/bin/templates
 COPY --from=binBase /static /usr/local/bin/static
